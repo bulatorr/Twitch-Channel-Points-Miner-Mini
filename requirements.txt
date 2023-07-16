@@ -3,6 +3,5 @@ websocket-client
 python-dateutil
 emoji
 millify
-pre-commit
 colorama
 pytz

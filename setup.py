@@ -31,7 +31,6 @@ setuptools.setup(
         "python-dateutil",
         "emoji",
         "millify",
-        "pre-commit",
         "colorama",
         "pytz",
     ],
