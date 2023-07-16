@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 from threading import Lock
 
-from TwitchChannelPointsMiner.classes.Chat import ChatPresence, ThreadChat
 from TwitchChannelPointsMiner.classes.entities.Bet import BetSettings, DelayMode
 from TwitchChannelPointsMiner.classes.entities.Stream import Stream
 from TwitchChannelPointsMiner.classes.Settings import Events, Settings
@@ -23,7 +22,6 @@ class StreamerSettings(object):
         "claim_moments",
         "watch_streak",
         "bet",
-        "chat",
     ]
 
     def __init__(
@@ -34,7 +32,6 @@ class StreamerSettings(object):
         claim_moments: bool = None,
         watch_streak: bool = None,
         bet: BetSettings = None,
-        chat: ChatPresence = None,
     ):
         self.make_predictions = make_predictions
         self.follow_raid = follow_raid
@@ -42,7 +39,6 @@ class StreamerSettings(object):
         self.claim_moments = claim_moments
         self.watch_streak = watch_streak
         self.bet = bet
-        self.chat = chat
 
     def default(self):
         for name in [
@@ -56,8 +52,6 @@ class StreamerSettings(object):
                 setattr(self, name, True)
         if self.bet is None:
             self.bet = BetSettings()
-        if self.chat is None:
-            self.chat = ChatPresence.ONLINE
 
     def __repr__(self):
         return f"BetSettings(make_predictions={self.make_predictions}, follow_raid={self.follow_raid}, claim_drops={self.claim_drops}, claim_moments={self.claim_moments}, watch_streak={self.watch_streak}, bet={self.bet}, chat={self.chat})"
@@ -76,7 +70,6 @@ class Streamer(object):
         "minute_watched_requests",
         "viewer_is_mod",
         "activeMultipliers",
-        "irc_chat",
         "stream",
         "raid",
         "history",
@@ -96,7 +89,6 @@ class Streamer(object):
         self.minute_watched_requests = None
         self.viewer_is_mod = False
         self.activeMultipliers = None
-        self.irc_chat = None
 
         self.stream = Stream()
 
@@ -122,8 +114,6 @@ class Streamer(object):
             self.offline_at = time.time()
             self.is_online = False
 
-        self.toggle_chat()
-
         logger.info(
             f"{self} is Offline!",
             extra={
@@ -137,8 +127,6 @@ class Streamer(object):
             self.online_at = time.time()
             self.is_online = True
             self.stream.init_watch_streak()
-
-        self.toggle_chat()
 
         logger.info(
             f"{self} is Online!",
@@ -203,76 +191,3 @@ class Streamer(object):
             return prediction_window_seconds * delay
         else:
             return prediction_window_seconds
-
-    # === ANALYTICS === #
-    def persistent_annotations(self, event_type, event_text):
-        event_type = event_type.upper()
-        if event_type in ["WATCH_STREAK", "WIN", "PREDICTION_MADE"]:
-            primary_color = (
-                "#45c1ff"
-                if event_type == "WATCH_STREAK"
-                else ("#ffe045" if event_type == "PREDICTION_MADE" else "#54ff45")
-            )
-            data = {
-                "borderColor": primary_color,
-                "label": {
-                    "style": {"color": "#000", "background": primary_color},
-                    "text": event_text,
-                },
-            }
-            self.__save_json("annotations", data)
-
-    def persistent_series(self, event_type="Watch"):
-        self.__save_json("series", event_type=event_type)
-
-    def __save_json(self, key, data={}, event_type="Watch"):
-        # https://stackoverflow.com/questions/4676195/why-do-i-need-to-multiply-unix-timestamps-by-1000-in-javascript
-        now = datetime.now().replace(microsecond=0)
-        data.update({"x": round(datetime.timestamp(now) * 1000)})
-
-        if key == "series":
-            data.update({"y": self.channel_points})
-            if event_type is not None:
-                data.update({"z": event_type.replace("_", " ").title()})
-
-        fname = os.path.join(Settings.analytics_path, f"{self.username}.json")
-        with self.mutex:
-            json_data = json.load(
-                open(fname, "r")) if os.path.isfile(fname) else {}
-            if key not in json_data:
-                json_data[key] = []
-
-            json_data[key].append(data)
-            json.dump(json_data, open(fname, "w"), indent=4)
-
-    def leave_chat(self):
-        if self.irc_chat is not None:
-            self.irc_chat.stop()
-
-            # Recreate a new thread to start again
-            # raise RuntimeError("threads can only be started once")
-            self.irc_chat = ThreadChat(
-                self.irc_chat.username,
-                self.irc_chat.token,
-                self.username,
-            )
-
-    def __join_chat(self):
-        if self.irc_chat is not None:
-            if self.irc_chat.is_alive() is False:
-                self.irc_chat.start()
-
-    def toggle_chat(self):
-        if self.settings.chat == ChatPresence.ALWAYS:
-            self.__join_chat()
-        elif self.settings.chat != ChatPresence.NEVER:
-            if self.is_online is True:
-                if self.settings.chat == ChatPresence.ONLINE:
-                    self.__join_chat()
-                elif self.settings.chat == ChatPresence.OFFLINE:
-                    self.leave_chat()
-            else:
-                if self.settings.chat == ChatPresence.ONLINE:
-                    self.leave_chat()
-                elif self.settings.chat == ChatPresence.OFFLINE:
-                    self.__join_chat()

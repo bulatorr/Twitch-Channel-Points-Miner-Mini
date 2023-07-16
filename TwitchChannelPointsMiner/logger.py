@@ -10,9 +10,6 @@ from pathlib import Path
 
 import emoji
 from colorama import Fore, init
-
-from TwitchChannelPointsMiner.classes.Discord import Discord
-from TwitchChannelPointsMiner.classes.Matrix import Matrix
 from TwitchChannelPointsMiner.classes.Settings import Events
 from TwitchChannelPointsMiner.classes.Telegram import Telegram
 from TwitchChannelPointsMiner.utils import remove_emoji
@@ -73,8 +70,6 @@ class LoggerSettings:
         "color_palette",
         "auto_clear",
         "telegram",
-        "discord",
-        "matrix"
     ]
 
     def __init__(
@@ -90,8 +85,6 @@ class LoggerSettings:
         color_palette: ColorPalette = ColorPalette(),
         auto_clear: bool = True,
         telegram: Telegram or None = None,
-        discord: Discord or None = None,
-        matrix: Matrix or None = None
     ):
         self.save = save
         self.less = less
@@ -104,8 +97,6 @@ class LoggerSettings:
         self.color_palette = color_palette
         self.auto_clear = auto_clear
         self.telegram = telegram
-        self.discord = discord
-        self.matrix = matrix
 
 
 class FileFormatter(logging.Formatter):
@@ -117,8 +108,7 @@ class FileFormatter(logging.Formatter):
                 self.timezone = pytz.timezone(settings.time_zone)
                 logging.info(f"File logger time zone set to: {self.timezone}")
             except pytz.UnknownTimeZoneError:
-                logging.error(
-                    f"File logger: invalid time zone: {settings.time_zone}")
+                logging.error(f"File logger: invalid time zone: {settings.time_zone}")
         logging.Formatter.__init__(self, fmt=fmt, datefmt=datefmt)
 
     def formatTime(self, record, datefmt=None):
@@ -136,11 +126,11 @@ class GlobalFormatter(logging.Formatter):
         if settings.time_zone:
             try:
                 self.timezone = pytz.timezone(settings.time_zone)
-                logging.info(
-                    f"Console logger time zone set to: {self.timezone}")
+                logging.info(f"Console logger time zone set to: {self.timezone}")
             except pytz.UnknownTimeZoneError:
                 logging.error(
-                    f"Console logger: invalid time zone: {settings.time_zone}")
+                    f"Console logger: invalid time zone: {settings.time_zone}"
+                )
         logging.Formatter.__init__(self, fmt=fmt, datefmt=datefmt)
 
     def formatTime(self, record, datefmt=None):
@@ -152,8 +142,7 @@ class GlobalFormatter(logging.Formatter):
 
     def format(self, record):
         record.emoji_is_present = (
-            record.emoji_is_present if hasattr(
-                record, "emoji_is_present") else False
+            record.emoji_is_present if hasattr(record, "emoji_is_present") else False
         )
         if (
             hasattr(record, "emoji")
@@ -175,8 +164,6 @@ class GlobalFormatter(logging.Formatter):
 
         if hasattr(record, "event"):
             self.telegram(record)
-            self.discord(record)
-            self.matrix(record)
 
             if self.settings.colored is True:
                 record.msg = (
@@ -186,8 +173,7 @@ class GlobalFormatter(logging.Formatter):
         return super().format(record)
 
     def telegram(self, record):
-        skip_telegram = False if hasattr(
-            record, "skip_telegram") is False else True
+        skip_telegram = False if hasattr(record, "skip_telegram") is False else True
 
         if (
             self.settings.telegram is not None
@@ -195,30 +181,6 @@ class GlobalFormatter(logging.Formatter):
             and self.settings.telegram.chat_id != 123456789
         ):
             self.settings.telegram.send(record.msg, record.event)
-
-    def discord(self, record):
-        skip_discord = False if hasattr(
-            record, "skip_discord") is False else True
-
-        if (
-            self.settings.discord is not None
-            and skip_discord is False
-            and self.settings.discord.webhook_api
-            != "https://discord.com/api/webhooks/0123456789/0a1B2c3D4e5F6g7H8i9J"
-        ):
-            self.settings.discord.send(record.msg, record.event)
-
-    def matrix(self, record):
-        skip_matrix = False if hasattr(
-            record, "skip_matrix") is False else True
-
-        if (
-            self.settings.matrix is not None
-            and skip_matrix is False
-            and self.settings.matrix.room_id != "..."
-            and self.settings.matrix.access_token
-        ):
-            self.settings.matrix.send(record.msg, record.event)
 
 
 def configure_loggers(username, settings):
@@ -242,8 +204,9 @@ def configure_loggers(username, settings):
     console_handler.setFormatter(
         GlobalFormatter(
             fmt=(
-                "%(asctime)s - %(levelname)s - [%(funcName)s]: " +
-                console_username + "%(message)s"
+                "%(asctime)s - %(levelname)s - [%(funcName)s]: "
+                + console_username
+                + "%(message)s"
                 if settings.less is False
                 else "%(asctime)s - " + console_username + "%(message)s"
             ),
@@ -272,7 +235,11 @@ def configure_loggers(username, settings):
             )
         else:
             # Getting time zone from the console_handler's formatter since they are the same
-            tz = "" if console_handler.formatter.timezone is False else console_handler.formatter.timezone
+            tz = (
+                ""
+                if console_handler.formatter.timezone is False
+                else console_handler.formatter.timezone
+            )
             logs_file = os.path.join(
                 logs_path,
                 f"{username}.{datetime.now(tz).strftime('%Y%m%d-%H%M%S')}.log",
@@ -283,7 +250,7 @@ def configure_loggers(username, settings):
             FileFormatter(
                 fmt="%(asctime)s - %(levelname)s - %(name)s - [%(funcName)s]: %(message)s",
                 datefmt="%d/%m/%y %H:%M:%S",
-                settings=settings
+                settings=settings,
             )
         )
         file_handler.setLevel(settings.file_level)

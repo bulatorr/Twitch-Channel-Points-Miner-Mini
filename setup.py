@@ -28,16 +28,12 @@ setuptools.setup(
     install_requires=[
         "requests",
         "websocket-client",
-        "pillow",
         "python-dateutil",
         "emoji",
         "millify",
         "pre-commit",
         "colorama",
-        "flask",
-        "irc",
-        "pandas",
-        "pytz"
+        "pytz",
     ],
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
