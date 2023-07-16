@@ -141,7 +141,7 @@ class TwitchChannelPointsMiner:
         logger.info(
             f"Twitch Channel Points Miner Mini-{current_version} (fork by bulatorr)"
         )
-        logger.info("https://github.com/rdavydov/Twitch-Channel-Points-Miner-v2")
+        logger.info("https://github.com/bulatorr/Twitch-Channel-Points-Miner-Mini")
 
         if github_version == "0.0.0":
             logger.error(
