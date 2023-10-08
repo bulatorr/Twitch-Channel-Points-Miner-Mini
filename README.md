@@ -1,6 +1,6 @@
 ![Twitch Channel Points Miner - v2](https://raw.githubusercontent.com/bulatorr/Twitch-Channel-Points-Miner-Mini/master/assets/banner.png)
 
-<h1 align="center">https://github.com/mrbulator/Twitch-Channel-Points-Miner-Mini</h1>
+<h1 align="center">https://github.com/bulatorr/Twitch-Channel-Points-Miner-Mini</h1>
 
 **Credits**
 - Main idea: https://github.com/gottagofaster236/Twitch-Channel-Points-Miner
