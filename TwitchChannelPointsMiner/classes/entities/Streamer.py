@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 from threading import Lock
 
-from TwitchChannelPointsMiner.classes.Chat import ChatPresence, ThreadChat
 from TwitchChannelPointsMiner.classes.entities.Bet import BetSettings, DelayMode
 from TwitchChannelPointsMiner.classes.entities.Stream import Stream
 from TwitchChannelPointsMiner.classes.Settings import Events, Settings
@@ -34,7 +33,7 @@ class StreamerSettings(object):
         claim_moments: bool = None,
         watch_streak: bool = None,
         bet: BetSettings = None,
-        chat: ChatPresence = None,
+        chat = None,
     ):
         self.make_predictions = make_predictions
         self.follow_raid = follow_raid
@@ -42,7 +41,7 @@ class StreamerSettings(object):
         self.claim_moments = claim_moments
         self.watch_streak = watch_streak
         self.bet = bet
-        self.chat = chat
+        self.chat = None
 
     def default(self):
         for name in [
@@ -56,8 +55,6 @@ class StreamerSettings(object):
                 setattr(self, name, True)
         if self.bet is None:
             self.bet = BetSettings()
-        if self.chat is None:
-            self.chat = ChatPresence.ONLINE
 
     def __repr__(self):
         return f"BetSettings(make_predictions={self.make_predictions}, follow_raid={self.follow_raid}, claim_drops={self.claim_drops}, claim_moments={self.claim_moments}, watch_streak={self.watch_streak}, bet={self.bet}, chat={self.chat})"
@@ -252,33 +249,11 @@ class Streamer(object):
             os.replace(temp_fname, fname)
 
     def leave_chat(self):
-        if self.irc_chat is not None:
-            self.irc_chat.stop()
-
-            # Recreate a new thread to start again
-            # raise RuntimeError("threads can only be started once")
-            self.irc_chat = ThreadChat(
-                self.irc_chat.username,
-                self.irc_chat.token,
-                self.username,
-            )
+        pass
+        
 
     def __join_chat(self):
-        if self.irc_chat is not None:
-            if self.irc_chat.is_alive() is False:
-                self.irc_chat.start()
+        pass
 
     def toggle_chat(self):
-        if self.settings.chat == ChatPresence.ALWAYS:
-            self.__join_chat()
-        elif self.settings.chat != ChatPresence.NEVER:
-            if self.is_online is True:
-                if self.settings.chat == ChatPresence.ONLINE:
-                    self.__join_chat()
-                elif self.settings.chat == ChatPresence.OFFLINE:
-                    self.leave_chat()
-            else:
-                if self.settings.chat == ChatPresence.ONLINE:
-                    self.leave_chat()
-                elif self.settings.chat == ChatPresence.OFFLINE:
-                    self.__join_chat()
+        pass
