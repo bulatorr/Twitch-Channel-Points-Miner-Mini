@@ -162,10 +162,10 @@ class TwitchChannelPointsMiner:
         current_version, github_version = check_versions()
 
         logger.info(
-            f"Twitch Channel Points Miner v2-{current_version} (fork by rdavydov)"
+            f"Twitch Channel Points Miner Mini-{current_version} (fork by bulatorr)"
         )
         logger.info(
-            "https://github.com/rdavydov/Twitch-Channel-Points-Miner-v2")
+            "https://github.com/bulatorr/Twitch-Channel-Points-Miner-Mini")
 
         if github_version == "0.0.0":
             logger.error(
@@ -186,19 +186,7 @@ class TwitchChannelPointsMiner:
         refresh: int = 5,
         days_ago: int = 7,
     ):
-        # Analytics switch
-        if Settings.enable_analytics is True:
-            from TwitchChannelPointsMiner.classes.AnalyticsServer import AnalyticsServer
-
-            http_server = AnalyticsServer(
-                host=host, port=port, refresh=refresh, days_ago=days_ago, username=self.username
-            )
-            http_server.daemon = True
-            http_server.name = "Analytics Thread"
-            http_server.start()
-        else:
-            logger.error(
-                "Can't start analytics(), please set enable_analytics=True")
+        pass
 
     def mine(
         self,
@@ -276,12 +264,6 @@ class TwitchChannelPointsMiner:
                         streamer.settings.bet = set_default_settings(
                             streamer.settings.bet, Settings.streamer_settings.bet
                         )
-                        if streamer.settings.chat != ChatPresence.NEVER:
-                            streamer.irc_chat = ThreadChat(
-                                self.username,
-                                self.twitch.twitch_login.get_auth_token(),
-                                streamer.username,
-                            )
                         self.streamers.append(streamer)
                     except StreamerDoesNotExistException:
                         logger.info(
